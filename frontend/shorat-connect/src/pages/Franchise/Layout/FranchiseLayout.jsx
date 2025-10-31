@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import FranchiseHeader from "../Layout/FranchiseHeader";
 import { FranchiseSidebar } from "../Layout/FranchiseSidebar";
 import DashboardContent from "../Dashboard/DashboardContent";
-import StaffManagement from "../../Franchise/staff/Staffmanagement";
+// in src/pages/Franchise/Layout/FranchiseLayout.jsx
+import StaffManagement from "../Staff/StaffManagement.jsx";
 import { NotificationPage } from "../Notifications/NotificationPage";
 import StudentManagement from "../Student/StudentManagement";
 import CourseManagement from "../course/CourseManagement";
