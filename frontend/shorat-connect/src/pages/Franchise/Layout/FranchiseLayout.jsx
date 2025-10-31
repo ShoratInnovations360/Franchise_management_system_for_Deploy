@@ -3,7 +3,7 @@ import FranchiseHeader from "../Layout/FranchiseHeader";
 import { FranchiseSidebar } from "../Layout/FranchiseSidebar";
 import DashboardContent from "../Dashboard/DashboardContent";
 // in src/pages/Franchise/Layout/FranchiseLayout.jsx
-import StaffManagement from "../Staff/StaffManagement.jsx";
+import StaffManagement from "../staff/StaffManagement";
 import { NotificationPage } from "../Notifications/NotificationPage";
 import StudentManagement from "../Student/StudentManagement";
 import CourseManagement from "../course/CourseManagement";
