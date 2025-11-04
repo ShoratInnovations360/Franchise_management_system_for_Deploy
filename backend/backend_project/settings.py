@@ -2,17 +2,25 @@ import os
 from pathlib import Path
 import dj_database_url
 
+# BASE
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ── Core ─────────────────────────────────────────────────────────
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
+# ALLOWED HOSTS and CSRF trusted origins (include exact frontend origin)
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "franchise-management-system-for-deploy-1.onrender.com",   # backend on Render
+    "franchise-management-system-for-deploy1.onrender.com",    # frontend host (without https prefix)
+    ".onrender.com",
+]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.onrender.com",
-    # add your custom domain later if any
+    "https://franchise-management-system-for-deploy-1.onrender.com",
+    "https://franchise-management-system-for-deploy1.onrender.com",
 ]
 
 # ── Apps ─────────────────────────────────────────────────────────
@@ -44,12 +52,10 @@ INSTALLED_APPS = [
 # ── Middleware (order matters) ───────────────────────────────────
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",   # serve static files
+    "corsheaders.middleware.CorsMiddleware",            # Must be high to handle preflight BEFORE CommonMiddleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",       # serve static files
     "django.contrib.sessions.middleware.SessionMiddleware",
-
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -107,11 +113,28 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # ── CORS ─────────────────────────────────────────────────────────
-# Start tight (update after frontend is live)
+# Add exact origins (include https://) — frontend origin is critical and must match browser origin
 CORS_ALLOWED_ORIGINS = [
-    # "https://<YOUR_FRONTEND_DOMAIN>.onrender.com",
+    "https://franchise-management-system-for-deploy1.onrender.com",   # frontend (exact)
+    "https://franchise-management-system-for-deploy-1.onrender.com",  # backend origin (if needed)
 ]
+
+# Allow credentials only if you actually use cookies; otherwise OK to leave True when using JWTs.
 CORS_ALLOW_CREDENTIALS = True
+
+# Allow common headers and Authorization
+from corsheaders.defaults import default_headers, default_methods
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "content-type",
+    "x-csrftoken",
+]
+
+# Optionally include extra methods
+CORS_ALLOW_METHODS = list(default_methods) + [
+    "PATCH",
+]
 
 # ── DRF & JWT ───────────────────────────────────────────────────
 from datetime import timedelta
