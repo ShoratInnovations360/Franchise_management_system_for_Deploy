@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import FranchiseHeader from "../Layout/FranchiseHeader";
 import { FranchiseSidebar } from "../Layout/FranchiseSidebar";
 import DashboardContent from "../Dashboard/DashboardContent";
-import StaffManagement from "../Franchise/staff/staffmanagement";
+import StaffManagement from "../staff/StaffManagement";
 import { NotificationPage } from "../Notifications/NotificationPage";
 import StudentManagement from "../Student/StudentManagement";
 import CourseManagement from "../course/CourseManagement";
