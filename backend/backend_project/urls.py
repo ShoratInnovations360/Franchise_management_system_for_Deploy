@@ -1,22 +1,31 @@
+# backend_project/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.http import JsonResponse
 
-def health(request):
+# simple root health view
+def root_health(request):
+    return JsonResponse({"status": "ok", "message": "Django backend is live"})
+
+# existing api health (keeps original behavior)
+def api_health(request):
     return JsonResponse({"status": "ok"})
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # Health
-    path("api/health/", health),
+    # root health (so visiting / won't return 404)
+    path("", root_health),
 
-    # JWT
+    # Health endpoint under /api/
+    path("api/health/", api_health),
+
+    # JWT token endpoints
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
-    # API Endpoints
+    # API Endpoints (keep the includes you already have)
     path("api/accounts/", include("admin1.accounts.urls")),
     path("api/add-franchise/", include("admin1.add_franchise.urls")),
     path("api/events/", include("admin1.add_event.urls")),
