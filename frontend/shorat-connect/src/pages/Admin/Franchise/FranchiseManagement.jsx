@@ -573,7 +573,9 @@ function FranchiseManagement({ setActivePage }) {
 
   // Create Axios instance with token
   const api = getApi();
-  api.defaults.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    api.defaults.headers.Authorization = `Bearer ${token}`;
+  }
 
   // Fetch franchises
   const fetchFranchises = async () => {
@@ -706,10 +708,13 @@ function FranchiseManagement({ setActivePage }) {
       setOpen(false);
       setShowPassword(false);
     } catch (err) {
-      console.error("Save error:", err.response?.data || err.message);
+      console.error("Save error full:", err);
+      console.error("Response data:", err.response?.data);
+
       const errorMsg =
         err.response?.data?.email ||
         err.response?.data?.detail ||
+        JSON.stringify(err.response?.data) ||
         "An error occurred while saving. Please check the data and try again.";
       alert(errorMsg);
     }
@@ -722,8 +727,13 @@ function FranchiseManagement({ setActivePage }) {
         setFranchises((prev) => prev.filter((f) => f.name !== name));
         if (selectedFranchise?.name === name) setSelectedFranchise(null);
       } catch (err) {
-        console.error("Delete error:", err.response?.data || err.message);
-        alert(err.response?.data?.detail || "Failed to delete franchise.");
+        console.error("Delete error full:", err);
+        console.error("Response data:", err.response?.data);
+        alert(
+          err.response?.data?.detail ||
+            JSON.stringify(err.response?.data) ||
+            "Failed to delete franchise."
+        );
       }
     }
   };
