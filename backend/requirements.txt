@@ -29,3 +29,6 @@ PyYAML==6.0.2
 
 # Payment integration
 razorpay==1.4.2
+dj-database-url
+psycopg2-binary
+
