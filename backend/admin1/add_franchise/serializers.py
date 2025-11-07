@@ -27,10 +27,10 @@ def send_welcome_email(email, franchise_name, password):
 class FranchiseSerializer(serializers.ModelSerializer):
     # For create/update (optional on update)
     # email = serializers.EmailField(write_only=True, required=False, allow_blank=False)
-    validators=[EmailValidator(check_deliverability=False)]
+    validators=[EmailValidator()]
     password = serializers.CharField(write_only=True, required=False, allow_blank=False)
     # Read-only user info for edit prefill
-    
+
     user_id = serializers.IntegerField(source="user.id", read_only=True)
     user_email = serializers.EmailField(source="user.email", read_only=True)
 
