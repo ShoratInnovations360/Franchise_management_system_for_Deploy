@@ -499,89 +499,501 @@
 
 // );
 // }
+// import React, { useState, useEffect } from "react";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardHeader,
+//   CardTitle,
+// } from "@/components/ui/card";
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from "@/components/ui/table";
+// import { Input } from "@/components/ui/input";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from "@/components/ui/dialog";
+// import { Label } from "@/components/ui/label";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Eye, EyeOff } from "lucide-react";
+
+// const API_BASE = import.meta.env.VITE_API_URL;
+
+// export default function FranchiseManagementWrapper() {
+//   const [activePage, setActivePage] = useState({
+//     page: "franchise",
+//     franchise: null,
+//   });
+
+//   return (
+//     <>
+//       {activePage.page === "franchise" && (
+//         <FranchiseManagement setActivePage={setActivePage} />
+//       )}
+//     </>
+//   );
+// }
+
+// function FranchiseManagement({ setActivePage }) {
+//   const [search, setSearch] = useState("");
+//   const [statusFilter, setStatusFilter] = useState("All");
+//   const [selectedFranchise, setSelectedFranchise] = useState(null);
+//   const [open, setOpen] = useState(false);
+//   const [showPassword, setShowPassword] = useState(false);
+
+//   // Form State
+//   const [name, setName] = useState("");
+//   const [location, setLocation] = useState("");
+//   const [startDate, setStartDate] = useState("");
+//   const [status, setStatus] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+
+//   // Backend data
+//   const [franchises, setFranchises] = useState([]);
+
+//   const token = localStorage.getItem("access_token");
+
+//   // Fetch franchises
+//   const fetchFranchises = async () => {
+//     try {
+//       console.log("Fetching franchises...");
+//       const res = await fetch(`${API_BASE}/add-franchise/franchise/`, {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       });
+//       const data = await res.json();
+//       console.log("Fetched franchises:", data);
+//       setFranchises(data.results || data || []);
+//     } catch (err) {
+//       console.error("Fetch error:", err);
+//       setFranchises([]);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchFranchises();
+//   }, []);
+
+//   // Save or Update franchise
+//   const handleSave = async () => {
+//     const payload = {
+//       name,
+//       location,
+//       email: email.toLowerCase(),
+//       password: password || "123456",
+//       start_date: startDate,
+//       status,
+//     };
+
+//     console.log("Payload to save franchise:", payload);
+
+//     try {
+//       let res;
+//       if (!selectedFranchise) {
+//         // Create new franchise
+//         res = await fetch(`${API_BASE}/add-franchise/franchise/`, {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${token}`,
+//           },
+//           body: JSON.stringify(payload),
+//         });
+//       } else {
+//         // Update existing
+//         const updatePayload = {
+//           name,
+//           location,
+//           start_date: startDate,
+//           status,
+//         };
+//         if (email && email !== selectedFranchise.email)
+//           updatePayload.email = email.toLowerCase();
+//         if (password) updatePayload.password = password;
+
+//         console.log("Update payload:", updatePayload);
+
+//         res = await fetch(
+//           `${API_BASE}/add-franchise/franchise/${encodeURIComponent(
+//             selectedFranchise.name
+//           )}/`,
+//           {
+//             method: "PATCH",
+//             headers: {
+//               "Content-Type": "application/json",
+//               Authorization: `Bearer ${token}`,
+//             },
+//             body: JSON.stringify(updatePayload),
+//           }
+//         );
+//       }
+
+//       const data = await res.json();
+//       console.log("Response from API:", res.status, data);
+
+//       if (!res.ok) throw new Error(data.detail || "Failed to save franchise");
+
+//       await fetchFranchises();
+
+//       alert(
+//         !selectedFranchise
+//           ? `Franchise added successfully! Default password: ${
+//               password || "123456"
+//             }`
+//           : "Franchise updated successfully!"
+//       );
+
+//       // Reset form
+//       setName("");
+//       setLocation("");
+//       setEmail("");
+//       setPassword("");
+//       setStartDate("");
+//       setStatus("");
+//       setSelectedFranchise(null);
+//       setOpen(false);
+//       setShowPassword(false);
+//     } catch (err) {
+//       console.error("Save error full:", err);
+//       alert(err.message || "Failed to save franchise");
+//     }
+//   };
+
+//   const handleDelete = async (name) => {
+//     if (!window.confirm("Are you sure you want to delete this franchise?"))
+//       return;
+//     try {
+//       const res = await fetch(
+//         `${API_BASE}/add-franchise/franchise/${encodeURIComponent(name)}/`,
+//         {
+//           method: "DELETE",
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         }
+//       );
+//       const data = await res.json().catch(() => ({}));
+//       console.log("Delete response:", res.status, data);
+
+//       if (!res.ok) throw new Error(data.detail || "Failed to delete franchise");
+
+//       setFranchises((prev) => prev.filter((f) => f.name !== name));
+//       if (selectedFranchise?.name === name) setSelectedFranchise(null);
+//     } catch (err) {
+//       console.error("Delete error full:", err);
+//       alert(err.message || "Failed to delete franchise");
+//     }
+//   };
+
+//   const handleToggleStatus = async (franchise) => {
+//     const updatedStatus = franchise.status === "active" ? "inactive" : "active";
+//     try {
+//       const res = await fetch(
+//         `${API_BASE}/add-franchise/franchise/${encodeURIComponent(
+//           franchise.name
+//         )}/`,
+//         {
+//           method: "PATCH",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${token}`,
+//           },
+//           body: JSON.stringify({ status: updatedStatus }),
+//         }
+//       );
+//       const data = await res.json();
+//       console.log("Toggle status response:", res.status, data);
+
+//       if (!res.ok) throw new Error(data.detail || "Failed to toggle status");
+
+//       setFranchises((prev) =>
+//         prev.map((f) =>
+//           f.id === franchise.id ? { ...f, status: updatedStatus } : f
+//         )
+//       );
+//     } catch (err) {
+//       console.error("Status toggle error:", err);
+//     }
+//   };
+
+//   const filteredFranchises = franchises.filter((f) => {
+//     const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
+//     const matchesStatus =
+//       statusFilter === "All" || f.status === statusFilter.toLowerCase();
+//     return matchesSearch && matchesStatus;
+//   });
+
+//   return (
+//     <div className="p-4 md:p-6">
+//       <h1 className="text-3xl font-bold mb-4 text-left">Franchise Management</h1>
+
+//       {/* Add Franchise Button */}
+//       <div className="flex flex-col md:flex-row gap-3 mb-4">
+//         <Input
+//           placeholder="Search franchise..."
+//           value={search}
+//           onChange={(e) => setSearch(e.target.value)}
+//           className="w-full md:w-1/3"
+//         />
+//         <select
+//           value={statusFilter}
+//           onChange={(e) => setStatusFilter(e.target.value)}
+//           className="border rounded px-3 py-2 w-full md:w-auto"
+//         >
+//           <option value="All">All</option>
+//           <option value="active">Active</option>
+//           <option value="inactive">Inactive</option>
+//         </select>
+//         <Button
+//           className="bg-red-600 text-white hover:bg-red-500 w-full md:w-auto md:ml-auto"
+//           onClick={() => {
+//             setOpen(true);
+//             setSelectedFranchise(null);
+//             setName("");
+//             setLocation("");
+//             setStartDate("");
+//             setStatus("");
+//             setEmail("");
+//             setPassword("");
+//           }}
+//         >
+//           + Add Franchise
+//         </Button>
+//       </div>
+
+//       {/* Table */}
+//       <div className="overflow-x-auto">
+//         <Table className="min-w-full">
+//           <TableHeader>
+//             <TableRow>
+//               <TableHead>Name</TableHead>
+//               <TableHead>Location</TableHead>
+//               <TableHead>Start Date</TableHead>
+//               <TableHead>Status</TableHead>
+//               <TableHead>Action</TableHead>
+//             </TableRow>
+//           </TableHeader>
+//           <TableBody>
+//             {filteredFranchises.map((f) => (
+//               <TableRow key={f.id || f.name}>
+//                 <TableCell>{f.name}</TableCell>
+//                 <TableCell>{f.location}</TableCell>
+//                 <TableCell>{f.start_date}</TableCell>
+//                 <TableCell>
+//                   <span
+//                     onClick={() => handleToggleStatus(f)}
+//                     className={`px-2 py-1 text-xs rounded-full cursor-pointer ${
+//                       f.status === "active"
+//                         ? "bg-green-100 text-green-700"
+//                         : "bg-gray-200 text-gray-600"
+//                     }`}
+//                   >
+//                     {f.status}
+//                   </span>
+//                 </TableCell>
+//                 <TableCell className="flex flex-col sm:flex-row gap-2">
+//                   <Button
+//                     size="sm"
+//                     className="bg-blue-500 hover:bg-blue-600 text-white"
+//                     onClick={() => {
+//                       setSelectedFranchise(f);
+//                       setName(f.name);
+//                       setEmail(f.user_email || f.email || "");
+//                       setPassword("");
+//                       setLocation(f.location);
+//                       setStartDate(f.start_date);
+//                       setStatus(f.status);
+//                       setOpen(true);
+//                     }}
+//                   >
+//                     Edit
+//                   </Button>
+//                   <Button
+//                     size="sm"
+//                     className="bg-red-600 hover:bg-red-500 text-white"
+//                     onClick={() => handleDelete(f.name)}
+//                   >
+//                     Delete
+//                   </Button>
+//                 </TableCell>
+//               </TableRow>
+//             ))}
+//           </TableBody>
+//         </Table>
+//       </div>
+
+//       {/* Modal */}
+//       <Dialog open={open} onOpenChange={setOpen}>
+//         <DialogContent className="sm:max-w-lg">
+//           <DialogHeader>
+//             <DialogTitle>
+//               {selectedFranchise ? "Edit Franchise" : "Add Franchise"}
+//             </DialogTitle>
+//           </DialogHeader>
+
+//           <form
+//             className="space-y-2"
+//             onSubmit={(e) => {
+//               e.preventDefault();
+//               handleSave();
+//             }}
+//           >
+//             <div>
+//               <Label>Franchise Name</Label>
+//               <Input
+//                 value={name}
+//                 onChange={(e) => setName(e.target.value)}
+//                 placeholder="Enter name"
+//                 required
+//               />
+//             </div>
+
+//             <div>
+//               <Label>Email</Label>
+//               <Input
+//                 type="email"
+//                 value={email}
+//                 onChange={(e) => setEmail(e.target.value)}
+//                 placeholder="Enter email"
+//                 required
+//               />
+//             </div>
+
+//             <div className="relative">
+//               <Label>Password</Label>
+//               <div className="relative">
+//                 <Input
+//                   type={showPassword ? "text" : "password"}
+//                   value={password}
+//                   onChange={(e) => setPassword(e.target.value)}
+//                   placeholder={
+//                     selectedFranchise
+//                       ? "Leave blank to keep current password"
+//                       : "Enter password (leave blank for default: 123456)"
+//                   }
+//                   className="pr-10"
+//                 />
+//                 <span
+//                   onClick={() => setShowPassword(!showPassword)}
+//                   className="absolute inset-y-0 right-2 flex items-center cursor-pointer text-gray-500 hover:text-gray-700"
+//                 >
+//                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+//                 </span>
+//               </div>
+//             </div>
+
+//             <div>
+//               <Label>Location</Label>
+//               <Input
+//                 value={location}
+//                 onChange={(e) => setLocation(e.target.value)}
+//                 placeholder="Enter location"
+//                 required
+//               />
+//             </div>
+
+//             <div>
+//               <Label>Start Date</Label>
+//               <Input
+//                 type="date"
+//                 value={startDate}
+//                 onChange={(e) => setStartDate(e.target.value)}
+//                 required
+//               />
+//             </div>
+
+//             <div>
+//               <Label>Status</Label>
+//               <Select value={status} onValueChange={setStatus}>
+//                 <SelectTrigger>
+//                   <SelectValue placeholder="Select status" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   <SelectItem value="active">Active</SelectItem>
+//                   <SelectItem value="inactive">Inactive</SelectItem>
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//             <DialogFooter>
+//               <Button
+//                 type="button"
+//                 variant="outline"
+//                 onClick={() => setOpen(false)}
+//               >
+//                 Cancel
+//               </Button>
+//               <Button type="submit" className="bg-green-600 text-white">
+//                 Save
+//               </Button>
+//             </DialogFooter>
+//           </form>
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   );
+// }
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function FranchiseManagementWrapper() {
-  const [activePage, setActivePage] = useState({
-    page: "franchise",
-    franchise: null,
-  });
-
+  const [activePage, setActivePage] = useState({ page: "franchise" });
   return (
     <>
-      {activePage.page === "franchise" && (
-        <FranchiseManagement setActivePage={setActivePage} />
-      )}
+      {activePage.page === "franchise" && <FranchiseManagement />}
     </>
   );
 }
 
-function FranchiseManagement({ setActivePage }) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [selectedFranchise, setSelectedFranchise] = useState(null);
+function FranchiseManagement() {
+  const [franchises, setFranchises] = useState([]);
   const [open, setOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [selectedFranchise, setSelectedFranchise] = useState(null);
 
-  // Form State
   const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [status, setStatus] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // Backend data
-  const [franchises, setFranchises] = useState([]);
+  const [location, setLocation] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [status, setStatus] = useState("active");
+  const [showPassword, setShowPassword] = useState(false);
 
   const token = localStorage.getItem("access_token");
 
-  // Fetch franchises
+  // Fetch all franchises
   const fetchFranchises = async () => {
     try {
-      console.log("Fetching franchises...");
       const res = await fetch(`${API_BASE}/add-franchise/franchise/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      console.log("Fetched franchises:", data);
       setFranchises(data.results || data || []);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -593,23 +1005,26 @@ function FranchiseManagement({ setActivePage }) {
     fetchFranchises();
   }, []);
 
-  // Save or Update franchise
+  // Add or Update franchise
   const handleSave = async () => {
+    if (!name || !email || !location || !startDate || !status) {
+      alert("Please fill all fields");
+      return;
+    }
+
     const payload = {
       name,
-      location,
       email: email.toLowerCase(),
       password: password || "123456",
+      location,
       start_date: startDate,
       status,
     };
 
-    console.log("Payload to save franchise:", payload);
-
     try {
       let res;
       if (!selectedFranchise) {
-        // Create new franchise
+        // Add new franchise
         res = await fetch(`${API_BASE}/add-franchise/franchise/`, {
           method: "POST",
           headers: {
@@ -619,161 +1034,85 @@ function FranchiseManagement({ setActivePage }) {
           body: JSON.stringify(payload),
         });
       } else {
-        // Update existing
+        // Update existing franchise
         const updatePayload = {
           name,
           location,
           start_date: startDate,
           status,
         };
-        if (email && email !== selectedFranchise.email)
-          updatePayload.email = email.toLowerCase();
+        if (email !== selectedFranchise.user_email) updatePayload.email = email;
         if (password) updatePayload.password = password;
 
-        console.log("Update payload:", updatePayload);
-
-        res = await fetch(
-          `${API_BASE}/add-franchise/franchise/${encodeURIComponent(
-            selectedFranchise.name
-          )}/`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(updatePayload),
-          }
-        );
-      }
-
-      const data = await res.json();
-      console.log("Response from API:", res.status, data);
-
-      if (!res.ok) throw new Error(data.detail || "Failed to save franchise");
-
-      await fetchFranchises();
-
-      alert(
-        !selectedFranchise
-          ? `Franchise added successfully! Default password: ${
-              password || "123456"
-            }`
-          : "Franchise updated successfully!"
-      );
-
-      // Reset form
-      setName("");
-      setLocation("");
-      setEmail("");
-      setPassword("");
-      setStartDate("");
-      setStatus("");
-      setSelectedFranchise(null);
-      setOpen(false);
-      setShowPassword(false);
-    } catch (err) {
-      console.error("Save error full:", err);
-      alert(err.message || "Failed to save franchise");
-    }
-  };
-
-  const handleDelete = async (name) => {
-    if (!window.confirm("Are you sure you want to delete this franchise?"))
-      return;
-    try {
-      const res = await fetch(
-        `${API_BASE}/add-franchise/franchise/${encodeURIComponent(name)}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await res.json().catch(() => ({}));
-      console.log("Delete response:", res.status, data);
-
-      if (!res.ok) throw new Error(data.detail || "Failed to delete franchise");
-
-      setFranchises((prev) => prev.filter((f) => f.name !== name));
-      if (selectedFranchise?.name === name) setSelectedFranchise(null);
-    } catch (err) {
-      console.error("Delete error full:", err);
-      alert(err.message || "Failed to delete franchise");
-    }
-  };
-
-  const handleToggleStatus = async (franchise) => {
-    const updatedStatus = franchise.status === "active" ? "inactive" : "active";
-    try {
-      const res = await fetch(
-        `${API_BASE}/add-franchise/franchise/${encodeURIComponent(
-          franchise.name
-        )}/`,
-        {
+        res = await fetch(`${API_BASE}/add-franchise/franchise/${selectedFranchise.id}/`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ status: updatedStatus }),
-        }
-      );
+          body: JSON.stringify(updatePayload),
+        });
+      }
+
       const data = await res.json();
-      console.log("Toggle status response:", res.status, data);
+      if (!res.ok) {
+        console.error("Save failed:", data);
+        alert(JSON.stringify(data));
+        return;
+      }
 
-      if (!res.ok) throw new Error(data.detail || "Failed to toggle status");
+      // Refresh list and close modal
+      await fetchFranchises();
+      setOpen(false);
 
-      setFranchises((prev) =>
-        prev.map((f) =>
-          f.id === franchise.id ? { ...f, status: updatedStatus } : f
-        )
-      );
+      // Reset form
+      setName("");
+      setEmail("");
+      setPassword("");
+      setLocation("");
+      setStartDate("");
+      setStatus("active");
+      setSelectedFranchise(null);
+
+      alert(selectedFranchise ? "Franchise updated!" : `Franchise added! Default password: ${password || "123456"}`);
     } catch (err) {
-      console.error("Status toggle error:", err);
+      console.error("Save error:", err);
+      alert("Failed to save franchise");
     }
   };
 
-  const filteredFranchises = franchises.filter((f) => {
-    const matchesSearch = f.name.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === "All" || f.status === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
-  });
+  // Delete franchise
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this franchise?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/add-franchise/franchise/${id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      setFranchises(franchises.filter((f) => f.id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert(err.message || "Failed to delete franchise");
+    }
+  };
 
   return (
     <div className="p-4 md:p-6">
-      <h1 className="text-3xl font-bold mb-4 text-left">Franchise Management</h1>
+      <h1 className="text-3xl font-bold mb-4">Franchise Management</h1>
 
-      {/* Add Franchise Button */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
-        <Input
-          placeholder="Search franchise..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-1/3"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded px-3 py-2 w-full md:w-auto"
-        >
-          <option value="All">All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
         <Button
           className="bg-red-600 text-white hover:bg-red-500 w-full md:w-auto md:ml-auto"
           onClick={() => {
-            setOpen(true);
             setSelectedFranchise(null);
             setName("");
-            setLocation("");
-            setStartDate("");
-            setStatus("");
             setEmail("");
             setPassword("");
+            setLocation("");
+            setStartDate("");
+            setStatus("active");
+            setOpen(true);
           }}
         >
           + Add Franchise
@@ -782,42 +1121,33 @@ function FranchiseManagement({ setActivePage }) {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <Table className="min-w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredFranchises.map((f) => (
-              <TableRow key={f.id || f.name}>
-                <TableCell>{f.name}</TableCell>
-                <TableCell>{f.location}</TableCell>
-                <TableCell>{f.start_date}</TableCell>
-                <TableCell>
-                  <span
-                    onClick={() => handleToggleStatus(f)}
-                    className={`px-2 py-1 text-xs rounded-full cursor-pointer ${
-                      f.status === "active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {f.status}
-                  </span>
-                </TableCell>
-                <TableCell className="flex flex-col sm:flex-row gap-2">
+        <table className="min-w-full border-collapse border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border px-4 py-2">Name</th>
+              <th className="border px-4 py-2">Email</th>
+              <th className="border px-4 py-2">Location</th>
+              <th className="border px-4 py-2">Start Date</th>
+              <th className="border px-4 py-2">Status</th>
+              <th className="border px-4 py-2">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {franchises.map((f) => (
+              <tr key={f.id}>
+                <td className="border px-4 py-2">{f.name}</td>
+                <td className="border px-4 py-2">{f.user_email}</td>
+                <td className="border px-4 py-2">{f.location}</td>
+                <td className="border px-4 py-2">{f.start_date}</td>
+                <td className="border px-4 py-2">{f.status}</td>
+                <td className="border px-4 py-2 flex gap-2">
                   <Button
                     size="sm"
                     className="bg-blue-500 hover:bg-blue-600 text-white"
                     onClick={() => {
                       setSelectedFranchise(f);
                       setName(f.name);
-                      setEmail(f.user_email || f.email || "");
+                      setEmail(f.user_email);
                       setPassword("");
                       setLocation(f.location);
                       setStartDate(f.start_date);
@@ -830,24 +1160,22 @@ function FranchiseManagement({ setActivePage }) {
                   <Button
                     size="sm"
                     className="bg-red-600 hover:bg-red-500 text-white"
-                    onClick={() => handleDelete(f.name)}
+                    onClick={() => handleDelete(f.id)}
                   >
                     Delete
                   </Button>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       {/* Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>
-              {selectedFranchise ? "Edit Franchise" : "Add Franchise"}
-            </DialogTitle>
+            <DialogTitle>{selectedFranchise ? "Edit Franchise" : "Add Franchise"}</DialogTitle>
           </DialogHeader>
 
           <form
@@ -859,25 +1187,12 @@ function FranchiseManagement({ setActivePage }) {
           >
             <div>
               <Label>Franchise Name</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter name"
-                required
-              />
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
-
             <div>
               <Label>Email</Label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email"
-                required
-              />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-
             <div className="relative">
               <Label>Password</Label>
               <div className="relative">
@@ -885,11 +1200,7 @@ function FranchiseManagement({ setActivePage }) {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={
-                    selectedFranchise
-                      ? "Leave blank to keep current password"
-                      : "Enter password (leave blank for default: 123456)"
-                  }
+                  placeholder={selectedFranchise ? "Leave blank to keep current" : "Default: 123456"}
                   className="pr-10"
                 />
                 <span
@@ -900,27 +1211,14 @@ function FranchiseManagement({ setActivePage }) {
                 </span>
               </div>
             </div>
-
             <div>
               <Label>Location</Label>
-              <Input
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Enter location"
-                required
-              />
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} required />
             </div>
-
             <div>
               <Label>Start Date</Label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                required
-              />
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
             </div>
-
             <div>
               <Label>Status</Label>
               <Select value={status} onValueChange={setStatus}>
@@ -935,11 +1233,7 @@ function FranchiseManagement({ setActivePage }) {
             </div>
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" className="bg-green-600 text-white">
@@ -952,3 +1246,4 @@ function FranchiseManagement({ setActivePage }) {
     </div>
   );
 }
+
