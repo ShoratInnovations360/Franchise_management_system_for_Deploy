@@ -38,10 +38,49 @@ def validate_password(password):
 
 
 # -------------------- Franchise ViewSet --------------------
+# class FranchiseViewSet(viewsets.ModelViewSet):
+#     queryset = AddFranchise.objects.all().order_by('-created_at')
+#     serializer_class = FranchiseSerializer
+#     lookup_field = "id"
+
+#     def perform_create(self, serializer):
+#         email = self.request.data.get("email", "").strip()
+#         password = self.request.data.get("password", "").strip() or "123456"
+
+#         # ✅ 1. Email required
+#         if not email:
+#             raise serializers.ValidationError({"email": "Email is required."})
+
+#         # ✅ 2. Email should not contain uppercase letters
+#         if any(c.isupper() for c in email):
+#             raise serializers.ValidationError({"email": "Email must be in lowercase only."})
+
+#         # ✅ 3. Validate email format
+#         try:
+#             validate_email(email)
+#         except ValidationError:
+#             raise serializers.ValidationError({"email": "Enter a valid email address."})
+
+#         # ✅ 4. Password validation
+#         if not validate_password(password):
+#             raise serializers.ValidationError({
+#                 "password": "Invalid password. First letter must be uppercase if letters exist, and no spaces."
+#             })
+
+#         # ✅ 5. Email existence check (global real email verification)
+#         try:
+#             domain = email.split("@")[1]
+#             smtp = smtplib.SMTP(f"smtp.{domain}", 587, timeout=5)
+#             smtp.quit()
+#         except Exception:
+#             raise serializers.ValidationError({"email": "This email domain is invalid or unreachable."})
+
+#         serializer.save()
+# -------------------- Franchise ViewSet --------------------
 class FranchiseViewSet(viewsets.ModelViewSet):
     queryset = AddFranchise.objects.all().order_by('-created_at')
     serializer_class = FranchiseSerializer
-    lookup_field = "id"
+    lookup_field = "id"  # safer than "name"
 
     def perform_create(self, serializer):
         email = self.request.data.get("email", "").strip()
@@ -51,7 +90,7 @@ class FranchiseViewSet(viewsets.ModelViewSet):
         if not email:
             raise serializers.ValidationError({"email": "Email is required."})
 
-        # ✅ 2. Email should not contain uppercase letters
+        # ✅ 2. Email should be lowercase
         if any(c.isupper() for c in email):
             raise serializers.ValidationError({"email": "Email must be in lowercase only."})
 
@@ -67,15 +106,14 @@ class FranchiseViewSet(viewsets.ModelViewSet):
                 "password": "Invalid password. First letter must be uppercase if letters exist, and no spaces."
             })
 
-        # ✅ 5. Email existence check (global real email verification)
-        try:
-            domain = email.split("@")[1]
-            smtp = smtplib.SMTP(f"smtp.{domain}", 587, timeout=5)
-            smtp.quit()
-        except Exception:
-            raise serializers.ValidationError({"email": "This email domain is invalid or unreachable."})
+        # ✅ 5. Skip SMTP domain check (Render blocks SMTP)
+        # Previously you tried connecting to smtp.{domain}:587
+        # We are skipping this for deployment
 
         serializer.save()
+
+
+        
 
     # -------------------- Delete Franchise --------------------
     def destroy(self, request, *args, **kwargs):
