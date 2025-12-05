@@ -990,7 +990,7 @@ function FranchiseManagement() {
   // Fetch all franchises
   const fetchFranchises = async () => {
     try {
-      const res = await fetch(`${API_BASE}/franchise/`, {
+      const res = await fetch(`${API_BASE}/api/franchise/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
