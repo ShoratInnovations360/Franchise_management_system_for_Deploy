@@ -7,7 +7,7 @@ const CourseManagement = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/courses/", {
+        const response = await fetch(`${API_BASE}/api/courses/`, {
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`,

@@ -24,7 +24,7 @@ export const DashboardContent = () => {
 
     const fetchFranchises = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/add-franchise/franchise/`, {
+        const res = await axios.get(`${API_BASE}/api/franchise/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

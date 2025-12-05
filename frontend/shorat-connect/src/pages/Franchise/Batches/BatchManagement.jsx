@@ -33,7 +33,7 @@ const BatchManagement = () => {
   const fetchFranchiseAndBatches = async () => {
     if (!token) return setError("No access token found");
     try {
-      const res = await axios.get(`${API_BASE}/api/add-franchise/my-franchise/`, {
+      const res = await axios.get(`${API_BASE}/api/franchise/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
