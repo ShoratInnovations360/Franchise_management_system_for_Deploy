@@ -41,7 +41,7 @@ def validate_password(password):
 class FranchiseViewSet(viewsets.ModelViewSet):
     queryset = AddFranchise.objects.all().order_by('-created_at')
     serializer_class = FranchiseSerializer
-    lookup_field = "name"
+    lookup_field = "id"
 
     def perform_create(self, serializer):
         email = self.request.data.get("email", "").strip()
