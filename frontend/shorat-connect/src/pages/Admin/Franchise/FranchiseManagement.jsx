@@ -965,11 +965,7 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 export default function FranchiseManagementWrapper() {
   const [activePage, setActivePage] = useState({ page: "franchise" });
-  return (
-    <>
-      {activePage.page === "franchise" && <FranchiseManagement />}
-    </>
-  );
+  return <>{activePage.page === "franchise" && <FranchiseManagement />}</>;
 }
 
 function FranchiseManagement() {
@@ -987,16 +983,33 @@ function FranchiseManagement() {
 
   const token = localStorage.getItem("access_token");
 
-  // Fetch all franchises
+  // ------------------ Fetch franchises ------------------
   const fetchFranchises = async () => {
+    if (!token) {
+      console.error("No access token found in localStorage!");
+      return;
+    }
+
     try {
+      console.log("Fetching franchises from API...");
       const res = await fetch(`${API_BASE}/api/franchise/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (!res.ok) {
+        console.error("Fetch failed with status:", res.status);
+        const text = await res.text();
+        console.error("Response text:", text);
+        setFranchises([]);
+        return;
+      }
+
       const data = await res.json();
-      setFranchises(data.results || data || []);
+      const franchiseList = Array.isArray(data) ? data : data.results || [];
+      console.log("Fetched franchises:", franchiseList);
+      setFranchises(franchiseList);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Error fetching franchises:", err);
       setFranchises([]);
     }
   };
@@ -1005,7 +1018,7 @@ function FranchiseManagement() {
     fetchFranchises();
   }, []);
 
-  // Add or Update franchise
+  // ------------------ Add or Update franchise ------------------
   const handleSave = async () => {
     if (!name || !email || !location || !startDate || !status) {
       alert("Please fill all fields");
@@ -1022,9 +1035,11 @@ function FranchiseManagement() {
     };
 
     try {
+      console.log(selectedFranchise ? "Updating franchise..." : "Adding new franchise...");
+      console.log("Payload:", payload);
+
       let res;
       if (!selectedFranchise) {
-        // Add new franchise
         res = await fetch(`${API_BASE}/api/franchise/`, {
           method: "POST",
           headers: {
@@ -1034,7 +1049,6 @@ function FranchiseManagement() {
           body: JSON.stringify(payload),
         });
       } else {
-        // Update existing franchise
         const updatePayload = {
           name,
           location,
@@ -1055,13 +1069,13 @@ function FranchiseManagement() {
       }
 
       const data = await res.json();
+      console.log("API response:", data);
+
       if (!res.ok) {
-        console.error("Save failed:", data);
-        alert(JSON.stringify(data));
+        alert("Failed to save franchise: " + JSON.stringify(data));
         return;
       }
 
-      // Refresh list and close modal
       await fetchFranchises();
       setOpen(false);
 
@@ -1076,27 +1090,36 @@ function FranchiseManagement() {
 
       alert(selectedFranchise ? "Franchise updated!" : `Franchise added! Default password: ${password || "123456"}`);
     } catch (err) {
-      console.error("Save error:", err);
-      alert("Failed to save franchise");
+      console.error("Error saving franchise:", err);
+      alert("Failed to save franchise. Check console for details.");
     }
   };
 
-  // Delete franchise
+  // ------------------ Delete franchise ------------------
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this franchise?")) return;
     try {
+      console.log("Deleting franchise id:", id);
       const res = await fetch(`${API_BASE}/api/franchise/${id}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Delete failed");
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Delete failed:", text);
+        throw new Error("Delete failed");
+      }
+
       setFranchises(franchises.filter((f) => f.id !== id));
+      console.log("Franchise deleted successfully");
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("Error deleting franchise:", err);
       alert(err.message || "Failed to delete franchise");
     }
   };
 
+  // ------------------ Render ------------------
   return (
     <div className="p-4 md:p-6">
       <h1 className="text-3xl font-bold mb-4">Franchise Management</h1>
@@ -1119,56 +1142,59 @@ function FranchiseManagement() {
         </Button>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse border border-gray-200">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-4 py-2">Name</th>
-              <th className="border px-4 py-2">Email</th>
-              <th className="border px-4 py-2">Location</th>
-              <th className="border px-4 py-2">Start Date</th>
-              <th className="border px-4 py-2">Status</th>
-              <th className="border px-4 py-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {franchises.map((f) => (
-              <tr key={f.id}>
-                <td className="border px-4 py-2">{f.name}</td>
-                <td className="border px-4 py-2">{f.user_email}</td>
-                <td className="border px-4 py-2">{f.location}</td>
-                <td className="border px-4 py-2">{f.start_date}</td>
-                <td className="border px-4 py-2">{f.status}</td>
-                <td className="border px-4 py-2 flex gap-2">
-                  <Button
-                    size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => {
-                      setSelectedFranchise(f);
-                      setName(f.name);
-                      setEmail(f.user_email);
-                      setPassword("");
-                      setLocation(f.location);
-                      setStartDate(f.start_date);
-                      setStatus(f.status);
-                      setOpen(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="bg-red-600 hover:bg-red-500 text-white"
-                    onClick={() => handleDelete(f.id)}
-                  >
-                    Delete
-                  </Button>
-                </td>
+        {franchises.length === 0 ? (
+          <p className="text-gray-500">No franchises found.</p>
+        ) : (
+          <table className="min-w-full border-collapse border border-gray-200">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border px-4 py-2">Name</th>
+                <th className="border px-4 py-2">Email</th>
+                <th className="border px-4 py-2">Location</th>
+                <th className="border px-4 py-2">Start Date</th>
+                <th className="border px-4 py-2">Status</th>
+                <th className="border px-4 py-2">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {franchises?.map((f) => (
+                <tr key={f.id}>
+                  <td className="border px-4 py-2">{f.name}</td>
+                  <td className="border px-4 py-2">{f.user_email || "-"}</td>
+                  <td className="border px-4 py-2">{f.location || "-"}</td>
+                  <td className="border px-4 py-2">{f.start_date || "-"}</td>
+                  <td className="border px-4 py-2">{f.status || "-"}</td>
+                  <td className="border px-4 py-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-blue-500 hover:bg-blue-600 text-white"
+                      onClick={() => {
+                        setSelectedFranchise(f);
+                        setName(f.name);
+                        setEmail(f.user_email);
+                        setPassword("");
+                        setLocation(f.location);
+                        setStartDate(f.start_date);
+                        setStatus(f.status);
+                        setOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-500 text-white"
+                      onClick={() => handleDelete(f.id)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Modal */}
@@ -1246,4 +1272,3 @@ function FranchiseManagement() {
     </div>
   );
 }
-
