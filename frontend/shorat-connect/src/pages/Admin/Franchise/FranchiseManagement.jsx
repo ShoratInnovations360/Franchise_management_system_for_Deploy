@@ -1025,7 +1025,7 @@ function FranchiseManagement() {
       let res;
       if (!selectedFranchise) {
         // Add new franchise
-        res = await fetch(`${API_BASE}/franchise/`, {
+        res = await fetch(`${API_BASE}/api/franchise/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1044,7 +1044,7 @@ function FranchiseManagement() {
         if (email !== selectedFranchise.user_email) updatePayload.email = email;
         if (password) updatePayload.password = password;
 
-        res = await fetch(`${API_BASE}/franchise/${selectedFranchise.id}/`, {
+        res = await fetch(`${API_BASE}/api/franchise/${selectedFranchise.id}/`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -1085,7 +1085,7 @@ function FranchiseManagement() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this franchise?")) return;
     try {
-      const res = await fetch(`${API_BASE}/franchise/${id}/`, {
+      const res = await fetch(`${API_BASE}/api/franchise/${id}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
