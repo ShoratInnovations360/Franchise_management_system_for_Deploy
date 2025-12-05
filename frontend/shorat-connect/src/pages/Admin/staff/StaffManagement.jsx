@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -267,7 +268,7 @@ const StaffManagement = () => {
     const fetchData = async () => {
       try {
         const [fRes, sRes] = await Promise.all([
-          api.get("add-franchise/franchise/"),
+          api.get("franchise/"),
           api.get("staff/"),
         ]);
         setFranchises(fRes.data);
