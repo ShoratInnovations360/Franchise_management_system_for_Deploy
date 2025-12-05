@@ -27,7 +27,7 @@ urlpatterns = [
 
     # API Endpoints (keep the includes you already have)
     path("api/accounts/", include("admin1.accounts.urls")),
-    path("api/add-franchise/", include("admin1.add_franchise.urls")),
+    path("api/franchise/", include("admin1.add_franchise.urls")),
     path("api/events/", include("admin1.add_event.urls")),
     path("api/profiles/", include("admin1.profiles.urls")),
     path("api/students/", include("Franchise.add_student.urls")),
