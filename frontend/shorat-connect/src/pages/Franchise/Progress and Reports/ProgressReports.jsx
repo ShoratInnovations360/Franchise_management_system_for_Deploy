@@ -23,7 +23,7 @@ const ReportsAnalytics = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const franchiseRes = await api.get("add-franchise/my-franchise/");
+        const franchiseRes = await api.get("franchise/");
         const franchiseData = franchiseRes.data;
         setLoggedInFranchise(franchiseData);
 

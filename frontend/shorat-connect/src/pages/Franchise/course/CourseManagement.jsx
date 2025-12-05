@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 
+const API_BASE = import.meta.env.VITE_API_URL;
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
   const token = localStorage.getItem("access_token");

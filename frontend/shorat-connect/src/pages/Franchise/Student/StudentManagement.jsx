@@ -227,7 +227,7 @@ export default function StudentManagement() {
         const [studentsRes, batchesRes, franchiseRes] = await Promise.all([
           api.get("students/"),
           api.get("batches/"),
-          api.get("add-franchise/my-franchise/"),
+          api.get("franchise/"),
         ]);
 
         const franchiseData = franchiseRes.data;

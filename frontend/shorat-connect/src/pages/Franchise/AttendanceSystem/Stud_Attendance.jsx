@@ -20,7 +20,7 @@ const StudentAttendance = () => {
 
     const fetchFranchise = async () => {
       try {
-        const res = await api.get("add-franchise/my-franchise/");
+        const res = await api.get("franchise/");
         setFranchiseName(res.data.name || "");
       } catch (err) {
         console.error("Error fetching franchise:", err);
