@@ -1,25 +1,20 @@
 #!/bin/bash
+set -e
 
-# Wait until Postgres is ready
-echo "Waiting for database to be ready..."
-until python - <<END
-import psycopg2, os, sys
-try:
-    conn = psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
-    conn.close()
-except Exception as e:
-    sys.exit(1)
-END
+echo "Waiting for database..."
+
+until python - <<EOF
+import psycopg2, os
+psycopg2.connect(os.environ["DATABASE_URL"], sslmode="require")
+EOF
 do
-  echo "Postgres unavailable - sleeping 5s"
-  sleep 5
+  echo "Postgres unavailable - sleeping 10s"
+  sleep 10
 done
 
-echo "Database ready! Running migrations..."
-python manage.py migrate --noinput
+echo "Database is ready"
 
-echo "Collecting static files..."
+python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
-echo "Starting Gunicorn..."
-gunicorn backend_project.wsgi:application --bind 0.0.0.0:$PORT
+exec gunicorn backend_project.wsgi:application --bind 0.0.0.0:$PORT
