@@ -3,16 +3,20 @@ set -e
 
 echo "Waiting for database..."
 
-until python - <<EOF
-import psycopg2, os
-psycopg2.connect(os.environ["DATABASE_URL"], sslmode="require")
-EOF
-do
-  echo "Postgres unavailable - sleeping 10s"
-  sleep 10
-done
+python << END
+import time, psycopg2, os
 
-echo "Database is ready"
+db_url = os.environ["DATABASE_URL"]
+
+while True:
+    try:
+        psycopg2.connect(db_url)
+        print("Database is ready!")
+        break
+    except Exception as e:
+        print("Postgres unavailable - sleeping 5s")
+        time.sleep(5)
+END
 
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
