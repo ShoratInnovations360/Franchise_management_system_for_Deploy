@@ -1,10 +1,14 @@
 #!/bin/bash
 
-# Run migrations after DB is ready
-python manage.py migrate --noinput
+# Wait for Postgres to be ready (retry until successful)
+echo "Waiting for database..."
+until python manage.py migrate --noinput; do
+    echo "Postgres is unavailable - sleeping"
+    sleep 5
+done
 
-# Collect static files (optional if not done in build)
+# Collect static files
 python manage.py collectstatic --noinput
 
-# Start Django with Gunicorn
+# Start Gunicorn
 gunicorn backend_project.wsgi:application --bind 0.0.0.0:$PORT
