@@ -17,7 +17,6 @@ const BatchManagement = () => {
   const [editingBatch, setEditingBatch] = useState(null);
   const [batchForm, setBatchForm] = useState({
     name: "",
-    franchise: "",
     students: "",
     start: "",
     end: "",
@@ -131,7 +130,7 @@ const BatchManagement = () => {
             </DialogHeader>
             <form onSubmit={handleSave} className="space-y-4">
               <Input name="name" value={batchForm.name} onChange={handleChange} placeholder="Batch Name" required />
-              <Input name="franchise" value={batchForm.franchise_name} readOnly placeholder="Franchise" />
+              <Input name="franchise" value={batchForm.franchise} readOnly placeholder="Franchise" />
               <Input type="number" name="students" value={batchForm.students} onChange={handleChange} placeholder="Students" required />
               
               <div>
