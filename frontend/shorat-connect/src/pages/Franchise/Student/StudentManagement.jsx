@@ -49,6 +49,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
   const [open, setOpen] = useState(false);
   const isEdit = !!student;
 
+  // Set initial form including franchise
   const emptyForm = {
     name: "",
     email: "",
@@ -57,10 +58,12 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
     fees_paid: "",
     total_fees: "",
     status: "Active",
+    franchise: loggedInFranchise?.name || "", // <-- include franchise
   };
 
   const [form, setForm] = useState(emptyForm);
 
+  // Update form when dialog opens or loggedInFranchise changes
   useEffect(() => {
     if (open) {
       if (isEdit) {
@@ -72,40 +75,16 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
           fees_paid: student?.fees_paid?.toString() || "",
           total_fees: student?.total_fees?.toString() || "",
           status: student?.status || "Active",
+          franchise: loggedInFranchise?.name || "",
         });
       } else {
-        setForm(emptyForm);
+        setForm({
+          ...emptyForm,
+          franchise: loggedInFranchise?.name || "", // <-- always update franchise
+        });
       }
     }
-  }, [open, student, batches]);
-
-  const handleSave = async () => {
-    try {
-      const api = getApi(); // dynamic axios
-      const payload = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        batch: Number(form.batch),
-        franchise_id: loggedInFranchise?.id,
-        fees_paid: Number(form.fees_paid) || 0,
-        total_fees: Number(form.total_fees) || 0,
-        status: form.status,
-      };
-
-      const response = isEdit
-        ? await api.put(`students/${student.id}/`, payload)
-        : await api.post("students/", payload);
-
-      onSave(response.data);
-      setOpen(false);
-    } catch (err) {
-      console.error("Failed to save student:", err.response || err);
-      alert(
-        `Error saving student: ${JSON.stringify(err.response?.data || err)}`
-      );
-    }
-  };
+  }, [open, student, batches, loggedInFranchise]); // <-- add loggedInFranchise as dependency
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -137,6 +116,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
+          {/* Name, Email, Phone */}
           {["name", "email", "phone"].map((field) => (
             <div key={field} className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2">
               <Label className="sm:text-right capitalize">{field}</Label>
@@ -148,6 +128,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
             </div>
           ))}
 
+          {/* Batch select */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2">
             <Label className="sm:text-right capitalize">Batch</Label>
             <Select
@@ -169,15 +150,17 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
             </Select>
           </div>
 
+          {/* Franchise - read only */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2">
             <Label className="sm:text-right capitalize">Franchise</Label>
             <Input
               className="sm:col-span-3"
-              value={loggedInFranchise?.name || ""}
-              disabled
+              value={form.franchise} // <-- use form state
+              readOnly
             />
           </div>
 
+          {/* Fees */}
           {["fees_paid", "total_fees"].map((field) => (
             <div key={field} className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2">
               <Label className="sm:text-right capitalize">{field.replace(/_/g, " ")}</Label>
@@ -190,6 +173,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
             </div>
           ))}
 
+          {/* Buttons */}
           <div className="flex flex-wrap justify-end gap-2 mt-4">
             <Button
               variant="outline"
@@ -199,7 +183,9 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
             </Button>
             <Button
               className="bg-red-600 hover:bg-red-700 rounded-2xl"
-              onClick={handleSave}
+              onClick={async () => {
+                await handleSave();
+              }}
             >
               Save
             </Button>
@@ -209,6 +195,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
     </Dialog>
   );
 };
+
 
 // ------------------------
 // Main Component
