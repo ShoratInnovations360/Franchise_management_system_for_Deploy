@@ -317,31 +317,26 @@
 
 // export default StaffAttendance;
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { getApi } from "@/utils/api";
 
 const StaffAttendance = () => {
   const api = getApi();
 
+  const role = localStorage.getItem("role");
   const today = new Date().toISOString().split("T")[0];
 
   const [franchise, setFranchise] = useState(null);
   const [staff, setStaff] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [date, setDate] = useState(today);
-  const [monthlySummary, setMonthlySummary] = useState([]);
-  const [showMonthlySummary, setShowMonthlySummary] = useState(false);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("access_token");
-  const role = localStorage.getItem("role");
-  const api = getApi();
 
-  const role = localStorage.getItem("role");
   const franchiseName = franchise?.name || "";
 
-  /* =======================
-     FETCH FRANCHISE
-  ======================= */
+  /* =========================
+     FETCH FRANCHISE (ONCE)
+  ========================= */
   useEffect(() => {
     if (role !== "franchise_head") return;
 
@@ -351,19 +346,19 @@ const StaffAttendance = () => {
         console.log("Franchise response:", res.data);
 
         if (Array.isArray(res.data) && res.data.length > 0) {
-          setFranchise(res.data[0]); // store full object
+          setFranchise(res.data[0]); // ✅ store full object
         }
       } catch (err) {
-        console.error("Franchise fetch error:", err);
+        console.error("Error fetching franchise:", err);
       }
     };
 
     fetchFranchise();
   }, [role, api]);
 
-  /* =======================
-     FETCH STAFF
-  ======================= */
+  /* =========================
+     FETCH STAFF (AFTER FRANCHISE)
+  ========================= */
   useEffect(() => {
     if (!franchiseName) return;
 
@@ -373,7 +368,7 @@ const StaffAttendance = () => {
         console.log("Staff response:", res.data);
         setStaff(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("Staff fetch error:", err);
+        console.error("Error fetching staff:", err);
       } finally {
         setLoading(false);
       }
@@ -382,41 +377,9 @@ const StaffAttendance = () => {
     fetchStaff();
   }, [franchiseName, api]);
 
-  /* =======================
-     FETCH ATTENDANCE
-  ======================= */
-  useEffect(() => {
-    if (!franchiseName) return;
-
-    const fetchAttendance = async () => {
-      try {
-        const res = await api.get(
-          `attendance/staff-attendance/?date=${date}&branch=${franchiseName}`
-        );
-
-        const data = Array.isArray(res.data) ? res.data : [];
-        const mapped = {};
-
-        data.forEach((a) => {
-          mapped[a.staff] = {
-            status: a.status,
-            inTime: a.in_time,
-            outTime: a.out_time,
-          };
-        });
-
-        setAttendance(mapped);
-      } catch (err) {
-        console.error("Attendance fetch error:", err);
-      }
-    };
-
-    fetchAttendance();
-  }, [date, franchiseName, api]);
-
-  /* =======================
+  /* =========================
      MARK ATTENDANCE
-  ======================= */
+  ========================= */
   const markAttendance = async (staffId, status) => {
     const record = {
       staff: staffId,
@@ -432,13 +395,13 @@ const StaffAttendance = () => {
         [staffId]: { status },
       }));
     } catch (err) {
-      console.error("Attendance save error:", err);
+      console.error("Error saving attendance:", err);
     }
   };
 
-  /* =======================
-     AUTH GUARD
-  ======================= */
+  /* =========================
+     GUARDS
+  ========================= */
   if (role !== "franchise_head") {
     return (
       <div className="p-6 text-red-600 font-bold">
@@ -448,14 +411,15 @@ const StaffAttendance = () => {
   }
 
   if (loading) {
-    return <div className="p-6">Loading staff...</div>;
+    return <div className="p-6">Loading attendance...</div>;
   }
 
-  /* =======================
+  /* =========================
      UI
-  ======================= */
+  ========================= */
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
+      {/* ✅ Franchise name now ALWAYS shows */}
       <h2 className="text-3xl font-bold text-gray-800">
         Staff Attendance – {franchiseName}
       </h2>
@@ -469,11 +433,12 @@ const StaffAttendance = () => {
               <th className="px-4 py-2">Status</th>
             </tr>
           </thead>
+
           <tbody>
             {staff.length > 0 ? (
               staff.map((s) => (
                 <tr key={s.id} className="border-t">
-                  <td className="px-4 py-2">{s.name}</td>
+                  <td className="px-4 py-2 font-medium">{s.name}</td>
                   <td className="px-4 py-2 space-x-2">
                     {["Present", "Absent", "Half Day", "WFH"].map((st) => (
                       <button
