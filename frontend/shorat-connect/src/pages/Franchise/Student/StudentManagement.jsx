@@ -49,7 +49,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
   const [open, setOpen] = useState(false);
   const isEdit = !!student;
 
-  // Set initial form including franchise
+  // Initial form state
   const emptyForm = {
     name: "",
     email: "",
@@ -58,12 +58,13 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
     fees_paid: "",
     total_fees: "",
     status: "Active",
-    franchise: loggedInFranchise?.name || "", // <-- include franchise
+    franchise: loggedInFranchise?.name || "", // autofill franchise name
+    franchise_id: loggedInFranchise?.id || "", // also keep franchise ID
   };
 
   const [form, setForm] = useState(emptyForm);
 
-  // Update form when dialog opens or loggedInFranchise changes
+  // Update form whenever dialog opens or franchise changes
   useEffect(() => {
     if (open) {
       if (isEdit) {
@@ -76,15 +77,43 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
           total_fees: student?.total_fees?.toString() || "",
           status: student?.status || "Active",
           franchise: loggedInFranchise?.name || "",
+          franchise_id: loggedInFranchise?.id || "",
         });
       } else {
         setForm({
           ...emptyForm,
-          franchise: loggedInFranchise?.name || "", // <-- always update franchise
+          franchise: loggedInFranchise?.name || "",
+          franchise_id: loggedInFranchise?.id || "",
         });
       }
     }
-  }, [open, student, batches, loggedInFranchise]); // <-- add loggedInFranchise as dependency
+  }, [open, student, batches, loggedInFranchise]);
+
+  const handleSave = async () => {
+    try {
+      const api = getApi(); // dynamic axios instance
+      const payload = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        batch: Number(form.batch),
+        franchise_id: form.franchise_id, // send franchise ID
+        fees_paid: Number(form.fees_paid) || 0,
+        total_fees: Number(form.total_fees) || 0,
+        status: form.status,
+      };
+
+      const response = isEdit
+        ? await api.put(`students/${student.id}/`, payload)
+        : await api.post("students/", payload);
+
+      onSave(response.data);
+      setOpen(false);
+    } catch (err) {
+      console.error("Failed to save student:", err.response || err);
+      alert(`Error saving student: ${JSON.stringify(err.response?.data || err)}`);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -136,9 +165,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
               onValueChange={(v) => setForm({ ...form, batch: v })}
             >
               <SelectTrigger className="sm:col-span-3">
-                <SelectValue
-                  placeholder={batches.length ? "Select Batch" : "No batch created"}
-                />
+                <SelectValue placeholder={batches.length ? "Select Batch" : "No batch created"} />
               </SelectTrigger>
               <SelectContent>
                 {batches.map((b) => (
@@ -150,12 +177,12 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
             </Select>
           </div>
 
-          {/* Franchise - read only */}
+          {/* Franchise - autofill and read-only */}
           <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2">
             <Label className="sm:text-right capitalize">Franchise</Label>
             <Input
               className="sm:col-span-3"
-              value={form.franchise} // <-- use form state
+              value={form.franchise}
               readOnly
             />
           </div>
@@ -183,9 +210,7 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
             </Button>
             <Button
               className="bg-red-600 hover:bg-red-700 rounded-2xl"
-              onClick={async () => {
-                await handleSave();
-              }}
+              onClick={handleSave}
             >
               Save
             </Button>
