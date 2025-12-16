@@ -17,18 +17,23 @@ const StaffAttendance = () => {
 
   // Fetch franchise
   useEffect(() => {
-    if (!token || role !== "franchise_head") return;
+  if (!token || role !== "franchise_head") return;
 
-    const fetchFranchise = async () => {
-      try {
-        const res = await api.get("franchise/");
-        setFranchiseName(res.data.name || "");
-      } catch (err) {
-        console.error("Error fetching franchise:", err);
+  const fetchFranchise = async () => {
+    try {
+      const res = await api.get("franchise/");
+      
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        setFranchiseName(res.data[0].name); // ✅ Ahilyanagar
       }
-    };
-    fetchFranchise();
-  }, [token, role, api]);
+    } catch (err) {
+      console.error("Error fetching franchise:", err);
+    }
+  };
+
+  fetchFranchise();
+}, [token, role, api]);
+
 
   // Fetch staff
   useEffect(() => {
