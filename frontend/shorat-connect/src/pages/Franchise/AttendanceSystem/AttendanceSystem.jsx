@@ -22,6 +22,7 @@ const StaffAttendance = () => {
   const fetchFranchise = async () => {
     try {
       const res = await api.get("franchise/");
+      console.log("FRANCHISE API RESPONSE 👉", res.data); 
       
       if (Array.isArray(res.data) && res.data.length > 0) {
         setFranchiseName(res.data[0].name); // ✅ Ahilyanagar
