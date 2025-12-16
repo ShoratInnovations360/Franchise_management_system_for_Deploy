@@ -60,7 +60,7 @@ const BatchManagement = () => {
                 batches.map((b) => (
                   <tr key={b.id} className="hover:bg-gray-50">
                     <td className="border px-3 py-2">{b.name}</td>
-                    <td className="border px-3 py-2">{b.franchise}</td>
+                    <td className="border px-3 py-2">{b.franchise?.name || "-"}</td>
                     <td className="border px-3 py-2">{b.students}</td>
                     <td className="border px-3 py-2">{b.start}</td>
                     <td className="border px-3 py-2">{b.end}</td>
