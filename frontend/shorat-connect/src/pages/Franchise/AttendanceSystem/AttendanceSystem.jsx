@@ -318,25 +318,51 @@
 // export default StaffAttendance;
 
 import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { getApi } from "@/utils/api";
 
-const StaffAttendance = () => {
-  const api = getApi();
-  const today = new Date().toISOString().split("T")[0];
+// Status Badge for attendance
+const AttendanceBadge = ({ status }) => {
+  let colorClass = "bg-gray-300 text-gray-700";
+  if (status === "Present") colorClass = "bg-green-600 text-white";
+  else if (status === "Absent") colorClass = "bg-red-600 text-white";
+  else if (status === "Half Day") colorClass = "bg-yellow-500 text-white";
+  else if (status === "WFH") colorClass = "bg-blue-600 text-white";
 
-  const role = localStorage.getItem("role");
+  return (
+    <Badge className={`px-2 py-1 rounded ${colorClass}`}>{status}</Badge>
+  );
+};
 
+export default function StaffAttendance() {
+  const [role, setRole] = useState("");
+  const [token, setToken] = useState("");
   const [franchise, setFranchise] = useState(null);
   const [staff, setStaff] = useState([]);
   const [attendance, setAttendance] = useState({});
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(true);
 
-  const franchiseName = franchise?.name || "";
+  const api = getApi();
 
-  /* =========================
-     FETCH FRANCHISE (FIXED)
-  ========================= */
+  // Read token and role from localStorage
+  useEffect(() => {
+    const storedToken = localStorage.getItem("access_token");
+    const storedRole = localStorage.getItem("role");
+
+    if (!storedToken || !storedRole) {
+      console.warn("No token or role found");
+      return;
+    }
+
+    setToken(storedToken);
+    setRole(storedRole);
+  }, []);
+
+  // Fetch franchise
   useEffect(() => {
     if (role !== "franchise_head") return;
 
@@ -346,148 +372,160 @@ const StaffAttendance = () => {
         console.log("Franchise API:", res.data);
 
         if (Array.isArray(res.data) && res.data.length > 0) {
-          setFranchise(res.data[0]); // ✅ store full object
+          setFranchise(res.data[0]);
         }
       } catch (err) {
-        console.error("Franchise fetch error:", err);
+        console.error("Error fetching franchise:", err);
       }
     };
 
     fetchFranchise();
   }, [role]);
 
-  /* =========================
-     FETCH STAFF (FIXED)
-  ========================= */
+  // Fetch staff
   useEffect(() => {
-    if (!franchiseName) return;
+    if (!franchise) return;
 
     const fetchStaff = async () => {
+      setLoading(true);
       try {
-        const res = await api.get(`staff/?branch=${franchiseName}`);
+        const res = await api.get(`staff/?branch=${franchise.name}`);
         console.log("Staff API:", res.data);
         setStaff(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("Staff fetch error:", err);
+        console.error("Error fetching staff:", err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStaff();
-  }, [franchiseName]);
+  }, [franchise]);
 
-  /* =========================
-     FETCH ATTENDANCE
-  ========================= */
+  // Fetch attendance
   useEffect(() => {
-    if (!franchiseName) return;
+    if (!franchise) return;
 
     const fetchAttendance = async () => {
       try {
         const res = await api.get(
-          `attendance/staff-attendance/?date=${date}&branch=${franchiseName}`
+          `attendance/staff-attendance/?date=${date}&branch=${franchise.name}`
         );
+        console.log("Attendance API:", res.data);
 
-        const map = {};
-        (res.data || []).forEach((a) => {
-          map[a.staff] = a.status;
-        });
-
-        setAttendance(map);
+        const mapped = {};
+        if (Array.isArray(res.data)) {
+          res.data.forEach((a) => {
+            mapped[a.staff] = { status: a.status };
+          });
+        }
+        setAttendance(mapped);
       } catch (err) {
-        console.error("Attendance fetch error:", err);
+        console.error("Error fetching attendance:", err);
       }
     };
 
     fetchAttendance();
-  }, [date, franchiseName]);
+  }, [franchise, date]);
 
-  /* =========================
-     MARK ATTENDANCE
-  ========================= */
+  // Mark attendance
   const markAttendance = async (staffId, status) => {
-    try {
-      await api.post("attendance/staff-attendance/", [
-        {
-          staff: staffId,
-          date,
-          status,
-          branch: franchiseName,
-        },
-      ]);
+    if (!franchise) return;
 
+    const record = {
+      staff: staffId,
+      date,
+      status,
+      branch: franchise.name,
+    };
+
+    try {
+      await api.post("attendance/staff-attendance/", [record]);
       setAttendance((prev) => ({
         ...prev,
-        [staffId]: status,
+        [staffId]: { status },
       }));
     } catch (err) {
-      console.error("Attendance save error:", err);
+      console.error("Error marking attendance:", err);
+      alert("Error marking attendance: " + JSON.stringify(err.response?.data || err));
     }
   };
 
-  /* =========================
-     AUTH GUARD
-  ========================= */
   if (role !== "franchise_head") {
     return (
       <div className="p-6 text-red-600 font-bold">
-        Unauthorized Access
+        Unauthorized: Only franchise head can view attendance
       </div>
     );
   }
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6">Loading staff...</div>;
 
-  /* =========================
-     UI
-  ========================= */
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <h2 className="text-3xl font-bold text-gray-800">
-        Staff Attendance – {franchiseName}
+        Staff Attendance – {franchise ? franchise.name : "-"}
       </h2>
 
-      <table className="min-w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 text-left">Name</th>
-            <th className="p-2">Mark</th>
-            <th className="p-2">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {staff.length > 0 ? (
-            staff.map((s) => (
-              <tr key={s.id} className="border-t">
-                <td className="p-2">{s.name}</td>
-                <td className="p-2 space-x-2">
-                  {["Present", "Absent", "Half Day", "WFH"].map((st) => (
-                    <button
-                      key={st}
-                      onClick={() => markAttendance(s.id, st)}
-                      className="px-2 py-1 bg-gray-200 rounded"
-                    >
-                      {st}
-                    </button>
-                  ))}
-                </td>
-                <td className="p-2 font-semibold text-blue-600">
-                  {attendance[s.id] || "-"}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="3" className="text-center py-6 text-gray-500">
-                No staff found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+      {/* Date selector */}
+      <div className="mb-4 flex items-center gap-2">
+        <label className="font-medium">Date:</label>
+        <Input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          max={new Date().toISOString().split("T")[0]}
+        />
+      </div>
+
+      {/* Staff Attendance Table */}
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle>Staff List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="min-w-full text-sm divide-y">
+              <thead className="bg-gray-100 text-gray-600">
+                <tr>
+                  <th className="py-2 px-2 text-left">Name</th>
+                  <th className="py-2 px-2 text-left">Mark Attendance</th>
+                  <th className="py-2 px-2 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {staff.length > 0 ? (
+                  staff.map((s) => (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="py-2 px-2">{s.name}</td>
+                      <td className="py-2 px-2 space-x-2">
+                        {["Present", "Absent", "Half Day", "WFH"].map((st) => (
+                          <Button
+                            key={st}
+                            onClick={() => markAttendance(s.id, st)}
+                            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                          >
+                            {st}
+                          </Button>
+                        ))}
+                      </td>
+                      <td className="py-2 px-2">
+                        <AttendanceBadge status={attendance[s.id]?.status || "-"} />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="text-center py-6 text-gray-500">
+                      No staff found for this franchise
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default StaffAttendance;
+}
