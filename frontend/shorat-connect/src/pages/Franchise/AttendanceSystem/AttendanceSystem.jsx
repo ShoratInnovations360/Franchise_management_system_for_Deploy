@@ -332,6 +332,9 @@ const StaffAttendance = () => {
   const [monthlySummary, setMonthlySummary] = useState([]);
   const [showMonthlySummary, setShowMonthlySummary] = useState(false);
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("access_token");
+  const role = localStorage.getItem("role");
+  const api = getApi();
 
   const role = localStorage.getItem("role");
   const franchiseName = franchise?.name || "";
