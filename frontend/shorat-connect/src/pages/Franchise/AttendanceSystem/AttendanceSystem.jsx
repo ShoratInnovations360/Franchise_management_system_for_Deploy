@@ -360,15 +360,22 @@ export default function StaffAttendance() {
     if (!token || role !== "franchise_head") return;
 
     const fetchFranchise = async () => {
-      try {
-        const res = await api.get("franchise/");
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setFranchiseName(res.data[0].name);
-        }
-      } catch (err) {
-        console.error("Error fetching franchise:", err);
-      }
-    };
+  try {
+    const res = await api.get("franchise/");
+
+    const loggedInEmail = localStorage.getItem("email"); // or user_id
+    const franchise = res.data.find(
+      (f) => f.user_email?.toLowerCase() === loggedInEmail?.toLowerCase()
+    );
+
+    if (franchise) {
+      setFranchiseName(franchise.name);
+    }
+  } catch (err) {
+    console.error("Error fetching franchise:", err);
+  }
+};
+
 
     fetchFranchise();
   }, [token, role]);
