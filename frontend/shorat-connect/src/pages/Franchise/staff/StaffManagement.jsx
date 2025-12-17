@@ -59,7 +59,7 @@ export default function StaffManagement() {
     );
     console.log("🚀 Logged-in franchise:", franchise);
 
-    setStaff(allStaff.filter((s) => s.franchise_id === franchise?.id));
+    setStaff(allStaff.filter((s) => s.franchise === franchise?.id));
     setLoading(false);
   } catch (err) {
     console.error("Error fetching staff:", err);
