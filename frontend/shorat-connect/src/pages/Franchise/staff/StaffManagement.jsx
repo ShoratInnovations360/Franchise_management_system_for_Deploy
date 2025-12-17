@@ -40,16 +40,33 @@ export default function StaffManagement() {
 
   // Fetch staff
   const fetchStaff = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("staff/");
-      setStaff(res.data);
-    } catch (err) {
-      console.error("Error fetching staff:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const res = await api.get("staff/");
+    const allStaff = res.data;
+
+    console.log("🚀 All staff from API:", allStaff);
+
+    const loggedInEmail = localStorage.getItem("email");
+    console.log("🚀 Logged-in email:", loggedInEmail);
+
+    // Fetch franchise list
+    const franchiseRes = await api.get("franchise/");
+    console.log("🚀 Franchise list:", franchiseRes.data);
+
+    const franchise = franchiseRes.data.find(
+      (f) => f.user_email?.toLowerCase() === loggedInEmail?.toLowerCase()
+    );
+    console.log("🚀 Logged-in franchise:", franchise);
+
+    setStaff(allStaff.filter((s) => s.franchise_id === franchise?.id));
+    setLoading(false);
+  } catch (err) {
+    console.error("Error fetching staff:", err);
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchStaff();
