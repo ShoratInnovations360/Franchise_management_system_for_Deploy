@@ -271,17 +271,28 @@ const BatchManagement = () => {
     if (!token) return setError("No access token found");
     try {
       // Fetch franchise
-      const res = await axios.get(`${API_BASE}/api/franchise/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Fetch franchise
+const res = await axios.get(`${API_BASE}/api/franchise/`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
 
-      let franchiseName = "";
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        franchiseName = res.data[0].name; // take first franchise
-      }
+// ✅ FIX START
+const loggedInEmail = localStorage.getItem("email"); // already saved by you
+let franchiseName = "";
 
-      // Set franchise in batchForm
-      setBatchForm((prev) => ({ ...prev, franchise: franchiseName }));
+if (Array.isArray(res.data)) {
+  const matchedFranchise = res.data.find(
+    (f) => f.user_email === loggedInEmail
+  );
+
+  if (matchedFranchise) {
+    franchiseName = matchedFranchise.name;
+  }
+}
+// ✅ FIX END
+
+setBatchForm((prev) => ({ ...prev, franchise: franchiseName }));
+
 
       // Fetch batches
       const batchesRes = await axios.get(`${API_BASE}/api/batches/`, {
