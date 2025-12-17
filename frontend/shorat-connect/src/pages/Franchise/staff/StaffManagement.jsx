@@ -514,7 +514,9 @@ export default function StaffManagement() {
   });
 
   const api = getApi();
-  const loggedInEmail = localStorage.getItem("email"); // Must match franchise.user_email
+  const loggedInEmail = localStorage.getItem("email");
+
+  console.log("🚀 Logged-in email:", loggedInEmail);
 
   // Fetch staff and franchise info
   const fetchData = async () => {
@@ -522,10 +524,14 @@ export default function StaffManagement() {
     try {
       const [staffRes, franchiseRes] = await Promise.all([api.get("staff/"), api.get("franchise/")]);
 
+      console.log("🚀 Franchise list from API:", franchiseRes.data);
+
       // Find franchise by logged-in email
       const franchise = franchiseRes.data.find(
-        (f) => f.user_email.toLowerCase() === loggedInEmail?.toLowerCase()
+        (f) => f.user_email?.toLowerCase() === loggedInEmail?.toLowerCase()
       );
+
+      console.log("🚀 Selected franchise for logged-in user:", franchise);
 
       if (!franchise) {
         alert("No franchise found for logged-in user!");
@@ -533,6 +539,7 @@ export default function StaffManagement() {
 
       setLoggedInFranchise(franchise || null);
       setStaff(staffRes.data);
+      console.log("🚀 Staff list:", staffRes.data);
     } catch (err) {
       console.error("Error fetching data:", err);
       alert("Failed to fetch staff or franchise data.");
@@ -545,12 +552,13 @@ export default function StaffManagement() {
     fetchData();
   }, []);
 
-  // Open Add Staff Dialog
   const handleOpenAddStaff = () => {
     if (!loggedInFranchise) {
       alert("Franchise not found for logged-in user!");
       return;
     }
+
+    console.log("🚀 Opening Add Staff dialog with franchise:", loggedInFranchise);
 
     setNewStaff({
       name: "",
@@ -564,10 +572,10 @@ export default function StaffManagement() {
     setOpen(true);
   };
 
-  // Submit Add Staff
   const handleAddStaffSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("🚀 Adding staff with data:", newStaff);
       await api.post("staff/", {
         name: newStaff.name,
         phone: newStaff.phone,
@@ -583,14 +591,12 @@ export default function StaffManagement() {
     }
   };
 
-  // Filter staff for search
   const filteredStaff = staff.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.phone.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Staff stats
   const totals = {
     total: staff.length,
     active: staff.filter((s) => s.status === "Active").length,
@@ -601,9 +607,10 @@ export default function StaffManagement() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 p-4">
-      {/* Header */}
       <header className="flex flex-col md:flex-row justify-between mb-4 gap-4">
-        <h1 className="text-3xl font-bold">Staff Management – {loggedInFranchise?.name || "No Franchise"}</h1>
+        <h1 className="text-3xl font-bold">
+          Staff Management – {loggedInFranchise?.name || "No Franchise"}
+        </h1>
         <div className="flex gap-2">
           <Input
             placeholder="Search by name or phone"
@@ -611,16 +618,12 @@ export default function StaffManagement() {
             onChange={(e) => setSearch(e.target.value)}
             className="rounded-2xl w-64"
           />
-          <Button
-            onClick={handleOpenAddStaff}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
+          <Button onClick={handleOpenAddStaff} className="bg-red-600 hover:bg-red-700 text-white">
             + Add Staff
           </Button>
         </div>
       </header>
 
-      {/* Add Staff Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -647,10 +650,7 @@ export default function StaffManagement() {
               onChange={(e) => setNewStaff({ ...newStaff, salary: e.target.value })}
               required
             />
-
-            {/* Franchise (auto-fill) */}
             <Input value={newStaff.franchise_name} readOnly />
-
             <select
               value={newStaff.status}
               onChange={(e) => setNewStaff({ ...newStaff, status: e.target.value })}
@@ -659,65 +659,12 @@ export default function StaffManagement() {
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
-
             <Button type="submit" className="w-full bg-red-600 text-white">
               Save
             </Button>
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Stats */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader><CardTitle>Total Staff</CardTitle></CardHeader>
-          <CardContent>{totals.total}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Active Staff</CardTitle></CardHeader>
-          <CardContent>{totals.active}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Inactive Staff</CardTitle></CardHeader>
-          <CardContent>{totals.inactive}</CardContent>
-        </Card>
-      </section>
-
-      {/* Staff Table */}
-      <Card>
-        <CardHeader><CardTitle>Staff List</CardTitle></CardHeader>
-        <CardContent>
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Salary</th>
-                <th>Status</th>
-                <th>Franchise</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStaff.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.name}</td>
-                  <td>{s.phone}</td>
-                  <td>{s.salary}</td>
-                  <td><StatusBadge status={s.status} /></td>
-                  <td>{s.franchise_name}</td>
-                </tr>
-              ))}
-              {filteredStaff.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center py-6 text-gray-500">
-                    No staff available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
     </div>
   );
 }
