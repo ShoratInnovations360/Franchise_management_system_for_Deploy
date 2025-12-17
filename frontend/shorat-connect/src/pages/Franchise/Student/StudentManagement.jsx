@@ -49,71 +49,75 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
   const [open, setOpen] = useState(false);
   const isEdit = !!student;
 
-  // Initial form state
-  const emptyForm = {
+  const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
-    batch: batches[0]?.id || "",
+    batch: "",
     fees_paid: "",
     total_fees: "",
     status: "Active",
-    franchise: loggedInFranchise?.name || "", // autofill franchise name
-    franchise_id: loggedInFranchise?.id || "", // also keep franchise ID
-  };
+    franchise: "",
+    franchise_id: "",
+  });
 
-  const [form, setForm] = useState(emptyForm);
-
-  // Update form whenever dialog opens or franchise changes
+  // 🔥 EXACT SAME PATTERN AS ADD BATCH
   useEffect(() => {
-    if (open) {
-      if (isEdit) {
-        setForm({
-          name: student?.name || "",
-          email: student?.email || "",
-          phone: student?.phone || "",
-          batch: student?.batch || batches[0]?.id || "",
-          fees_paid: student?.fees_paid?.toString() || "",
-          total_fees: student?.total_fees?.toString() || "",
-          status: student?.status || "Active",
-          franchise: loggedInFranchise?.name || "",
-          franchise_id: loggedInFranchise?.id || "",
-        });
-      } else {
-        setForm({
-          ...emptyForm,
-          franchise: loggedInFranchise?.name || "",
-          franchise_id: loggedInFranchise?.id || "",
-        });
-      }
+    if (!open || !loggedInFranchise) return;
+
+    if (isEdit) {
+      setForm({
+        name: student?.name || "",
+        email: student?.email || "",
+        phone: student?.phone || "",
+        batch: student?.batch || batches[0]?.id || "",
+        fees_paid: student?.fees_paid?.toString() || "",
+        total_fees: student?.total_fees?.toString() || "",
+        status: student?.status || "Active",
+        franchise: loggedInFranchise.name,
+        franchise_id: loggedInFranchise.id,
+      });
+    } else {
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        batch: batches[0]?.id || "",
+        fees_paid: "",
+        total_fees: "",
+        status: "Active",
+        franchise: loggedInFranchise.name,     // ✅ AUTOFILL
+        franchise_id: loggedInFranchise.id,   // ✅ REQUIRED
+      });
     }
-  }, [open, student, batches, loggedInFranchise]);
+  }, [open, loggedInFranchise, student, batches]);
 
   const handleSave = async () => {
     try {
-      const api = getApi(); // dynamic axios instance
+      const api = getApi();
       const payload = {
         name: form.name,
         email: form.email,
         phone: form.phone,
         batch: Number(form.batch),
-        franchise_id: form.franchise_id, // send franchise ID
+        franchise_id: form.franchise_id,
         fees_paid: Number(form.fees_paid) || 0,
         total_fees: Number(form.total_fees) || 0,
         status: form.status,
       };
 
-      const response = isEdit
+      const res = isEdit
         ? await api.put(`students/${student.id}/`, payload)
         : await api.post("students/", payload);
 
-      onSave(response.data);
+      onSave(res.data);
       setOpen(false);
     } catch (err) {
-      console.error("Failed to save student:", err.response || err);
-      alert(`Error saving student: ${JSON.stringify(err.response?.data || err)}`);
+      console.error("Failed to save student:", err);
+      alert("Error saving student");
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
