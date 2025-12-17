@@ -248,13 +248,10 @@ export default function StudentManagement() {
       ]);
 
       // ✅ FIX: handle franchise array correctly
-      const franchiseArray = franchiseRes.data;
-      const franchiseData =
-        Array.isArray(franchiseArray) && franchiseArray.length > 0
-          ? franchiseArray[0]
-          : null;
-
+      const franchiseData = franchiseRes.data; 
       setLoggedInFranchise(franchiseData);
+      console.log("Logged in franchise:", franchiseData);
+
 
       setRows(
         studentsRes.data.map((s) => ({
