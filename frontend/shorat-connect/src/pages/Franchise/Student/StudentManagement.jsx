@@ -247,20 +247,20 @@ export default function StudentManagement() {
         api.get("franchise/"),
       ]);
 
-      // ✅ FIX: handle franchise array correctly
-      const loginRes = await api.get("franchise/"); // OR wherever email comes from
-const loggedInEmail = loginRes.data.email;
+      // ✅ logged-in email (already saved during login)
+      const loggedInEmail = localStorage.getItem("email");
 
-// franchiseRes.data is an array
-const franchiseData = franchiseRes.data.find(
-  (f) => f.user_email === loggedInEmail
-);
+      // ✅ franchise list
+      const franchiseArray = franchiseRes.data;
 
-setLoggedInFranchise(franchiseData || null);
+      // ✅ PICK ONLY LOGGED-IN FRANCHISE
+      const franchiseData = franchiseArray.find(
+        (f) => f.user_email === loggedInEmail
+      );
 
-console.log("Logged in franchise:", franchiseData);
+      console.log("Logged in franchise:", franchiseData);
 
-
+      setLoggedInFranchise(franchiseData || null);
 
       setRows(
         studentsRes.data.map((s) => ({
@@ -282,6 +282,7 @@ console.log("Logged in franchise:", franchiseData);
 
   fetchData();
 }, []);
+
 
 
   const handleDelete = async (id) => {
