@@ -14,20 +14,28 @@ const StudentAttendance = () => {
   const role = localStorage.getItem("role");
   const api = getApi();
 
-  // ✅ Fetch franchise
+  
   useEffect(() => {
-    if (!token || role !== "franchise_head") return;
+  if (!token || role !== "franchise_head") return;
 
-    const fetchFranchise = async () => {
-      try {
-        const res = await api.get("franchise/");
-        setFranchiseName(res.data.name || "");
-      } catch (err) {
-        console.error("Error fetching franchise:", err);
+  const fetchFranchise = async () => {
+    try {
+      const res = await api.get("franchise/");
+      const loggedInEmail = localStorage.getItem("email"); // get logged-in user's email
+      const franchise = res.data.find(
+        (f) => f.user_email?.toLowerCase() === loggedInEmail?.toLowerCase()
+      );
+      if (franchise) {
+        setFranchiseName(franchise.name); // or store franchise.id if API uses it
       }
-    };
-    fetchFranchise();
-  }, [token, role, api]);
+    } catch (err) {
+      console.error("Error fetching franchise:", err);
+    }
+  };
+
+  fetchFranchise();
+}, [token, role, api]);
+
 
   // ✅ Fetch students
   useEffect(() => {
