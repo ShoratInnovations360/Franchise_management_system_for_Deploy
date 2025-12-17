@@ -248,16 +248,15 @@ export default function StudentManagement() {
       ]);
 
       // ✅ FIX: handle franchise array correctly
-      const franchiseArray = franchiseRes.data;
+      const loginRes = await api.get("franchise/"); // OR wherever email comes from
+const loggedInEmail = loginRes.data.email;
 
-// TEMP FIX: pick franchise for logged-in user
-// (change condition if you have user_id / franchise_id)
-const franchiseData =
-  Array.isArray(franchiseArray) && franchiseArray.length > 0
-    ? franchiseArray[0]   // 👈 choose correct one here
-    : null;
+// franchiseRes.data is an array
+const franchiseData = franchiseRes.data.find(
+  (f) => f.user_email === loggedInEmail
+);
 
-setLoggedInFranchise(franchiseData);
+setLoggedInFranchise(franchiseData || null);
 
 console.log("Logged in franchise:", franchiseData);
 
