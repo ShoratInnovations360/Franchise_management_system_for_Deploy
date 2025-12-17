@@ -236,40 +236,47 @@ export default function StudentManagement() {
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const api = getApi(); // dynamic axios
-        const [studentsRes, batchesRes, franchiseRes] = await Promise.all([
-          api.get("students/"),
-          api.get("batches/"),
-          api.get("franchise/"),
-        ]);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const api = getApi();
 
-        const franchiseData = franchiseRes.data;
-        setLoggedInFranchise(franchiseData);
+      const [studentsRes, batchesRes, franchiseRes] = await Promise.all([
+        api.get("students/"),
+        api.get("batches/"),
+        api.get("franchise/"),
+      ]);
 
-        setRows(
-          studentsRes.data.map((s) => ({
-            ...s,
-            fees_paid: s.fees_paid || 0,
-            total_fees: s.total_fees || 0,
-            franchise: s.franchise || {
-              id: franchiseData.id,
-              name: franchiseData.name,
-            },
-          }))
-        );
-        setBatches(batchesRes.data);
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-        alert("Error fetching data from backend");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+      // ✅ FIX: handle franchise array correctly
+      const franchiseArray = franchiseRes.data;
+      const franchiseData =
+        Array.isArray(franchiseArray) && franchiseArray.length > 0
+          ? franchiseArray[0]
+          : null;
+
+      setLoggedInFranchise(franchiseData);
+
+      setRows(
+        studentsRes.data.map((s) => ({
+          ...s,
+          fees_paid: s.fees_paid || 0,
+          total_fees: s.total_fees || 0,
+          franchise: franchiseData,
+        }))
+      );
+
+      setBatches(batchesRes.data);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+      alert("Error fetching data from backend");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this student?")) return;
