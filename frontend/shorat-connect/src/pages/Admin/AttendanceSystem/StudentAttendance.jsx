@@ -13,6 +13,33 @@ const StudentAttendanceList = () => {
   const [showSummary, setShowSummary] = useState(false);
   const token = localStorage.getItem("access_token");
 
+
+
+  // ✅ Fetch all franchises for branch filter
+useEffect(() => {
+  const fetchBranches = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/franchise/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch franchises");
+
+      const data = await res.json();
+
+      // assuming API returns array of franchises
+      const branchNames = Array.isArray(data)
+        ? data.map(f => f.name)
+        : [];
+
+      setBranches(branchNames);
+    } catch (err) {
+      console.error("Error fetching branches:", err);
+    }
+  };
+
+  fetchBranches();
+}, [token]);
+
   // Fetch student attendance
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -23,9 +50,6 @@ const StudentAttendanceList = () => {
         if (!res.ok) throw new Error("Failed to fetch attendance");
         const data = await res.json();
         setRecords(data);
-
-        const uniqueBranches = [...new Set(data.map(r => r.branch_name || r.branch))];
-        setBranches(uniqueBranches);
       } catch (err) {
         console.error(err);
       } finally {
