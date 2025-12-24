@@ -93,32 +93,40 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
   }, [open, loggedInFranchise, student, batches]);
 
   const handleSave = async () => {
-    try {
-      const api = getApi();
-      const payload = {
-  name: form.name,
-  email: form.email,
-  phone: form.phone,
-  batch: Number(form.batch),
-  franchise_id: form.franchise_id,
-  fees_paid: Number(form.fees_paid) || 0,
-  total_fees: Number(form.total_fees) || 0,
-  status: form.status,
-  
+  try {
+    const api = getApi();
+
+    // ✅ BASE payload (common fields)
+    const payload = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      batch: Number(form.batch),
+      fees_paid: Number(form.fees_paid) || 0,
+      total_fees: Number(form.total_fees) || 0,
+      status: form.status,
+    };
+
+    // ✅ ONLY ADD franchise_id WHILE CREATING
+    if (!isEdit) {
+      payload.franchise_id = form.franchise_id;
+    }
+
+    const res = isEdit
+      ? await api.put(`students/${student.id}/`, payload)
+      : await api.post("students/", payload);
+
+    onSave(res.data);
+    setOpen(false);
+  } catch (err) {
+    console.error("Failed to save student:", err.response?.data || err);
+    alert(
+      "Error saving student:\n" +
+        JSON.stringify(err.response?.data || err, null, 2)
+    );
+  }
 };
 
-
-      const res = isEdit
-        ? await api.put(`students/${student.id}/`, payload)
-        : await api.post("students/", payload);
-
-      onSave(res.data);
-      setOpen(false);
-    } catch (err) {
-      console.error("Failed to save student:", err);
-      alert("Error saving student");
-    }
-  };
 
 
   return (
