@@ -96,15 +96,17 @@ const StudentDialog = ({ onSave, batches, loggedInFranchise, student }) => {
     try {
       const api = getApi();
       const payload = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        batch: Number(form.batch),
-        franchise_id: form.franchise_id,
-        fees_paid: Number(form.fees_paid) || 0,
-        total_fees: Number(form.total_fees) || 0,
-        status: form.status,
-      };
+  name: form.name,
+  email: form.email,
+  phone: form.phone,
+  batch: Number(form.batch),
+  franchise_id: form.franchise_id,
+  fees_paid: Number(form.fees_paid) || 0,
+  total_fees: Number(form.total_fees) || 0,
+  status: form.status,
+  
+};
+
 
       const res = isEdit
         ? await api.put(`students/${student.id}/`, payload)
